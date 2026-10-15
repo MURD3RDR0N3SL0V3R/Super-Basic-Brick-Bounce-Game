@@ -86,7 +86,7 @@ function update() {
 
   bounceOffWalls();   // collisions.js
   bounceOffPaddle();  // collisions.js
-  breakableSystem();  // collisions.js
+  bounceOffBricks();  // collisions.js
 
   // The ball fell off the bottom: back to the center.
   if (ball.y > HEIGHT) {

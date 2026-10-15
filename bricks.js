@@ -24,8 +24,7 @@ function makeBricks() {
         x: left + col * (BRICK_WIDTH + BRICK_GAP),
         y: BRICKS_TOP + row * (BRICK_HEIGHT + BRICK_GAP),
         width: BRICK_WIDTH,
-        height: BRICK_HEIGHT,
-        breakable: { ...Breakable }
+        height: BRICK_HEIGHT
       });
     }
   }

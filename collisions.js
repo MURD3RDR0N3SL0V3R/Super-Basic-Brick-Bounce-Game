@@ -46,10 +46,9 @@ function bounceOffPaddle() {
 }
 
 
-// Applies the Breakable component when the ball hits a brick entity.
-function breakableSystem() {
-  for (let i = 0; i < bricks.length; i++) {
-    const brick = bricks[i];
+// The ball bounces off the bricks. Nothing happens to the brick yet.
+function bounceOffBricks() {
+  for (const brick of bricks) {
     if (!boxesTouch(ball, brick)) {
       continue;  // not touching this brick, check the next one
     }
@@ -74,11 +73,6 @@ function breakableSystem() {
       } else {
         ball.y = brick.y + brick.height;   // below the brick
       }
-    }
-
-    brick.breakable.hitsLeft--;
-    if (brick.breakable.hitsLeft <= 0) {
-      bricks.splice(i, 1);
     }
 
     break;  // bounce off one brick per update, then stop looking
