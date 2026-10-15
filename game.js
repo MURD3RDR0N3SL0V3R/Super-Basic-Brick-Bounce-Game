@@ -129,7 +129,7 @@ function draw() {
   ctx.fillRect(paddle.x, paddle.y, paddle.width, paddle.height);
   ctx.fillRect(ball.x, ball.y, ball.width, ball.height);
 
-  drawBricks();  // bricks.js
+  drawBrickSystem();  // bricks.js
 }
 
 
