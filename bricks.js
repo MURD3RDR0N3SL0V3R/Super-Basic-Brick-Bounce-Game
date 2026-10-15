@@ -25,7 +25,7 @@ function makeBricks() {
         y: BRICKS_TOP + row * (BRICK_HEIGHT + BRICK_GAP),
         width: BRICK_WIDTH,
         height: BRICK_HEIGHT
-      });
+        Shaded: { ...Shaded, shade: 80 + row * 40 }
     }
   }
 
