@@ -24,7 +24,8 @@ function makeBricks() {
         x: left + col * (BRICK_WIDTH + BRICK_GAP),
         y: BRICKS_TOP + row * (BRICK_HEIGHT + BRICK_GAP),
         width: BRICK_WIDTH,
-                height: BRICK_HEIGHT,
+        height: BRICK_HEIGHT,
+        row,
         Shaded: { ...Shaded, shade: 80 + row * 40 }
       });
     }
@@ -35,9 +36,11 @@ function makeBricks() {
 
 //Renders bricks using the data in their Shaded component.
 function drawBrickSystem() {
-    for (const brick of bricks) {
-      const shade = brick.Shaded.shade;
-      ctx.fillStyle = `rgb(${shade}, ${shade}, ${shade})`;
+  for (const brick of bricks) {
+    ctx.fillStyle = PALETTE.bricks[brick.row];
     ctx.fillRect(brick.x, brick.y, brick.width, brick.height);
+    ctx.strokeStyle = "rgba(9, 12, 14, 0.52)";
+    ctx.lineWidth = 1;
+    ctx.strokeRect(brick.x + .5, brick.y + .5, brick.width - 1, brick.height - 1);
   }
 }

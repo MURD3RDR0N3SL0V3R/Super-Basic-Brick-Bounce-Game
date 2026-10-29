@@ -3,19 +3,64 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Block Breaker</title>
+  <meta name="theme-color" content="#090c0e">
+  <title>Block / Bounce</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <main>
-    <canvas id="game" width="600" height="450" aria-label="Block Breaker game"></canvas>
-    <p>Move the paddle with the left and right arrow keys, or A and D.</p>
+  <main class="shell">
+    <header class="topbar">
+      <a class="wordmark" href="#" aria-label="Block Bounce home">
+        <span class="mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+        <span>BLOCK<span class="wordmark-divider">/</span>BOUNCE</span>
+      </a>
+      <div class="system-state"><span class="state-light"></span> SYSTEM ONLINE</div>
+    </header>
+
+    <section class="intro" aria-labelledby="page-title">
+      <div>
+        <p class="eyebrow">ARCADE SIMULATION <span>///</span> 001</p>
+        <h1 id="page-title">BREAK THE <span>LOOP.</span></h1>
+      </div>
+      <p class="intro-note">A clean run. No second chances<br>for the signal in your way.</p>
+    </section>
+
+    <section class="game-panel" aria-label="Game console">
+      <div class="panel-bar">
+        <div class="panel-label"><span class="crosshair" aria-hidden="true">+</span> LIVE FEED <span class="slash">/</span> SECTOR 01</div>
+        <div class="panel-status"><span class="live-dot"></span> ACTIVE</div>
+      </div>
+      <div class="canvas-frame">
+        <canvas id="game" width="600" height="450" aria-label="Block Bounce game"></canvas>
+        <span class="corner corner-tl" aria-hidden="true"></span>
+        <span class="corner corner-tr" aria-hidden="true"></span>
+        <span class="corner corner-bl" aria-hidden="true"></span>
+        <span class="corner corner-br" aria-hidden="true"></span>
+      </div>
+      <div class="control-bar">
+        <div class="control-description">
+          <span class="control-kicker">PILOT CONTROLS</span>
+          <span class="control-instruction">Move the paddle. Keep the signal alive.</span>
+        </div>
+        <div class="key-group" aria-label="Move with the left and right arrow keys, or A and D">
+          <kbd>←</kbd><kbd>→</kbd><span class="key-or">OR</span><kbd>A</kbd><kbd>D</kbd>
+        </div>
+      </div>
+    </section>
+
+    <footer class="bottomline">
+      <span>BUILT FOR THE LONG WAY DOWN</span>
+      <span class="bottomline-right"><span>60 FPS</span><span class="bottom-divider"></span><span>NO SIGNAL LOST</span></span>
+    </footer>
   </main>
 
-   <!-- Load shared settings and components before the files that use them. -->
+  <!-- Load shared settings and components before the files that use them. -->
   <script src="game.js"></script>
   <script src="components.js"></script>
   <script src="bricks.js"></script>
   <script src="collisions.js"></script>
-  </body>
+</body>
 </html>

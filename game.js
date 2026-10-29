@@ -11,6 +11,13 @@ const ctx = canvas.getContext("2d");
 
 const WIDTH = canvas.width;   // 600
 const HEIGHT = canvas.height; // 450
+const PALETTE = {
+  background: "#0c1113",
+  grid: "rgba(220, 229, 231, 0.045)",
+  paddle: "#dce5e7",
+  ball: "#f6df68",
+  bricks: ["#56666c", "#84969b", "#b6c4c7", "#e6c847"]
+};
 
 
 // ------------------------------------------------------------
@@ -118,16 +125,36 @@ function moveBall() {
 
 
 // ------------------------------------------------------------
-// DRAW: paints everything on the canvas. Black background,
-// white shapes.
+// DRAW: paints the playfield and its objects.
 // ------------------------------------------------------------
 function draw() {
-  ctx.fillStyle = "black";
+  ctx.fillStyle = PALETTE.background;
   ctx.fillRect(0, 0, WIDTH, HEIGHT);
 
-  ctx.fillStyle = "white";
+  ctx.strokeStyle = PALETTE.grid;
+  ctx.lineWidth = 1;
+  for (let x = 30; x < WIDTH; x += 30) {
+    ctx.beginPath();
+    ctx.moveTo(x, 0);
+    ctx.lineTo(x, HEIGHT);
+    ctx.stroke();
+  }
+  for (let y = 30; y < HEIGHT; y += 30) {
+    ctx.beginPath();
+    ctx.moveTo(0, y);
+    ctx.lineTo(WIDTH, y);
+    ctx.stroke();
+  }
+
+  ctx.shadowColor = PALETTE.paddle;
+  ctx.shadowBlur = 12;
+  ctx.fillStyle = PALETTE.paddle;
   ctx.fillRect(paddle.x, paddle.y, paddle.width, paddle.height);
+  ctx.shadowColor = PALETTE.ball;
+  ctx.shadowBlur = 18;
+  ctx.fillStyle = PALETTE.ball;
   ctx.fillRect(ball.x, ball.y, ball.width, ball.height);
+  ctx.shadowBlur = 0;
 
   drawBrickSystem();  // bricks.js
 }
