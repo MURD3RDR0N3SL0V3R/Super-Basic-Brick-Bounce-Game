@@ -31,7 +31,7 @@
     <section class="game-panel" aria-label="Game console">
       <div class="panel-bar">
         <div class="panel-label"><span class="crosshair" aria-hidden="true">+</span> LIVE FEED <span class="slash">/</span> SECTOR 01</div>
-        <div class="panel-status"><span class="live-dot"></span> ACTIVE</div>
+        <div class="panel-status"><span class="live-dot"></span><span id="game-status">ACTIVE</span></div>
       </div>
       <div class="canvas-frame">
         <canvas id="game" width="600" height="450" aria-label="Block Bounce game"></canvas>
@@ -40,10 +40,39 @@
         <span class="corner corner-bl" aria-hidden="true"></span>
         <span class="corner corner-br" aria-hidden="true"></span>
       </div>
+      <div class="game-toolbar">
+        <div class="game-stats" aria-live="polite">
+          <span>SCORE <strong id="score-value">0000</strong></span>
+          <span>CREDITS <strong id="credits-value">00</strong></span>
+          <span>WAVE <strong id="wave-value">01</strong></span>
+        </div>
+        <div class="game-actions">
+          <button type="button" id="shop-button" aria-expanded="false" aria-controls="shop-menu">SHOP</button>
+          <button type="button" id="pause-button">PAUSE <kbd>P</kbd></button>
+          <button type="button" id="restart-button">RESTART <kbd>R</kbd></button>
+          <button type="button" id="music-button" aria-pressed="false">LOFI OFF</button>
+        </div>
+      </div>
+      <section id="shop-menu" class="shop-menu" aria-label="Upgrade shop" hidden>
+        <div class="shop-heading">
+          <div><p class="eyebrow">FIELD UPGRADES</p><h2>SUPPLY DEPOT</h2></div>
+          <button type="button" id="shop-close" class="shop-close" aria-label="Close shop">CLOSE</button>
+        </div>
+        <div class="shop-items">
+          <button type="button" class="upgrade-button" data-upgrade="paddle">
+            <span class="upgrade-copy"><strong>WIDE PADDLE</strong><small>Increase paddle width</small></span>
+            <span class="upgrade-price" id="paddle-price">10 CR</span>
+          </button>
+          <button type="button" class="upgrade-button" data-upgrade="power">
+            <span class="upgrade-copy"><strong>IMPACT CORE</strong><small>Deal more damage per hit</small></span>
+            <span class="upgrade-price" id="power-price">20 CR</span>
+          </button>
+        </div>
+      </section>
       <div class="control-bar">
         <div class="control-description">
           <span class="control-kicker">PILOT CONTROLS</span>
-          <span class="control-instruction">Move the paddle. Keep the signal alive.</span>
+          <span class="control-instruction">Move the paddle. Keep the signal alive. P pauses / R restarts.</span>
         </div>
         <div class="key-group" aria-label="Move with the left and right arrow keys, or A and D">
           <kbd>←</kbd><kbd>→</kbd><span class="key-or">OR</span><kbd>A</kbd><kbd>D</kbd>
@@ -57,10 +86,11 @@
     </footer>
   </main>
 
-  <!-- Load shared settings and components before the files that use them. -->
-  <script src="game.js"></script>
+  <!-- Load shared settings and mechanics before the game loop. -->
   <script src="components.js"></script>
+  <script src="mechanics.js"></script>
   <script src="bricks.js"></script>
   <script src="collisions.js"></script>
+  <script src="game.js"></script>
 </body>
 </html>

@@ -62,6 +62,18 @@ const paddle = {
 // THE BRICKS (the list is filled in by makeBricks() in bricks.js)
 // ------------------------------------------------------------
 let bricks = [];
+let score = 0;
+let credits = 0;
+let wave = 1;
+let paused = false;
+let shopOpen = false;
+let musicEnabled = false;
+const upgrades = { paddle: 0, power: 0 };
+
+const shopMenu = document.getElementById("shop-menu");
+const shopButton = document.getElementById("shop-button");
+const pauseButton = document.getElementById("pause-button");
+const musicButton = document.getElementById("music-button");
 
 
 // ------------------------------------------------------------
@@ -76,11 +88,124 @@ document.addEventListener("keydown", function (event) {
   if (event.key.startsWith("Arrow")) {
     event.preventDefault();
   }
+
+  if (event.repeat) {
+    return;
+  }
+  if (event.key.toLowerCase() === "p") {
+    paused = !paused;
+    updateInterface();
+  } else if (event.key.toLowerCase() === "r") {
+    restartGame();
+  } else if (event.key === "Escape" && shopOpen) {
+    setShopOpen(false);
+  }
 });
 
 document.addEventListener("keyup", function (event) {
   keys[event.key.toLowerCase()] = false;
 });
+
+document.getElementById("shop-close").addEventListener("click", function () {
+  setShopOpen(false);
+});
+
+shopButton.addEventListener("click", function () {
+  setShopOpen(!shopOpen);
+});
+
+pauseButton.addEventListener("click", function () {
+  paused = !paused;
+  updateInterface();
+});
+
+document.getElementById("restart-button").addEventListener("click", restartGame);
+
+musicButton.addEventListener("click", function () {
+  musicEnabled = !musicEnabled;
+  if (!toggleLofiMusic(musicEnabled)) {
+    musicEnabled = false;
+  }
+  updateInterface();
+});
+
+document.querySelectorAll("[data-upgrade]").forEach(function (button) {
+  button.addEventListener("click", function () {
+    purchaseUpgrade(button.dataset.upgrade);
+  });
+});
+
+function setShopOpen(isOpen) {
+  shopOpen = isOpen;
+  shopMenu.hidden = !shopOpen;
+  shopButton.setAttribute("aria-expanded", String(shopOpen));
+  updateInterface();
+}
+
+function upgradeCost(type) {
+  return type === "paddle" ? 10 + upgrades.paddle * 10 : 20 + upgrades.power * 15;
+}
+
+function purchaseUpgrade(type) {
+  const maximum = type === "paddle" ? 4 : 2;
+  const price = upgradeCost(type);
+  if (upgrades[type] >= maximum || credits < price) {
+    return;
+  }
+
+  credits -= price;
+  upgrades[type] += 1;
+  if (type === "paddle") {
+    paddle.width = 90 + upgrades.paddle * 12;
+    paddle.x = Math.min(paddle.x, WIDTH - paddle.width);
+  }
+  updateInterface();
+}
+
+function registerBrickBreak(brick) {
+  score += brick.maxHits * 100;
+  credits += brick.reward;
+  if (bricks.length === 0) {
+    wave += 1;
+    bricks = makeBricks();
+  }
+  updateInterface();
+}
+
+function restartGame() {
+  bricks = makeBricks();
+  score = 0;
+  credits = 0;
+  wave = 1;
+  upgrades.paddle = 0;
+  upgrades.power = 0;
+  paddle.width = 90;
+  paddle.x = WIDTH / 2 - paddle.width / 2;
+  paused = false;
+  setShopOpen(false);
+  resetBall();
+  updateInterface();
+}
+
+function updateInterface() {
+  document.getElementById("score-value").textContent = String(score).padStart(4, "0");
+  document.getElementById("credits-value").textContent = String(credits).padStart(2, "0");
+  document.getElementById("wave-value").textContent = String(wave).padStart(2, "0");
+  document.getElementById("game-status").textContent = shopOpen ? "SHOP" : paused ? "PAUSED" : "ACTIVE";
+  pauseButton.innerHTML = `${paused ? "RESUME" : "PAUSE"} <kbd>P</kbd>`;
+  musicButton.textContent = musicEnabled ? "LOFI ON" : "LOFI OFF";
+  musicButton.setAttribute("aria-pressed", String(musicEnabled));
+
+  document.querySelectorAll("[data-upgrade]").forEach(function (button) {
+    const type = button.dataset.upgrade;
+    const maximum = type === "paddle" ? 4 : 2;
+    const price = upgradeCost(type);
+    const level = upgrades[type];
+    button.querySelector(".upgrade-price").textContent = level === maximum ? "MAX" : `${price} CR`;
+    button.querySelector("strong").textContent = `${type === "paddle" ? "WIDE PADDLE" : "IMPACT CORE"} ${level}/${maximum}`;
+    button.disabled = level === maximum || credits < price;
+  });
+}
 
 
 // ------------------------------------------------------------
@@ -157,6 +282,16 @@ function draw() {
   ctx.shadowBlur = 0;
 
   drawBrickSystem();  // bricks.js
+
+  if (paused || shopOpen) {
+    ctx.fillStyle = "rgba(9, 12, 14, 0.62)";
+    ctx.fillRect(0, 0, WIDTH, HEIGHT);
+    ctx.fillStyle = PALETTE.ball;
+    ctx.font = "700 28px 'Barlow Condensed', sans-serif";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(shopOpen ? "SUPPLY DEPOT" : "PAUSED", WIDTH / 2, HEIGHT / 2);
+  }
 }
 
 
@@ -180,7 +315,9 @@ function frame(now) {
   }
 
   while (leftover >= STEP) {
-    update();
+    if (!paused && !shopOpen) {
+      update();
+    }
     leftover = leftover - STEP;
   }
 
@@ -191,6 +328,7 @@ function frame(now) {
 function start() {
   bricks = makeBricks();  // bricks.js
   resetBall();
+  updateInterface();
   lastTime = performance.now();
   requestAnimationFrame(frame);
 }

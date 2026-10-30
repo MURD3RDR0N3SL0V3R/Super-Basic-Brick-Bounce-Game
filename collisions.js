@@ -46,9 +46,10 @@ function bounceOffPaddle() {
 }
 
 
-// The ball bounces off the bricks. Nothing happens to the brick yet.
+// Bounce off a brick and apply the purchased impact upgrade.
 function bounceOffBricks() {
-  for (const brick of bricks) {
+  for (let index = 0; index < bricks.length; index++) {
+    const brick = bricks[index];
     if (!boxesTouch(ball, brick)) {
       continue;  // not touching this brick, check the next one
     }
@@ -73,6 +74,12 @@ function bounceOffBricks() {
       } else {
         ball.y = brick.y + brick.height;   // below the brick
       }
+    }
+
+    brick.hits -= 1 + upgrades.power;
+    if (brick.hits <= 0) {
+      bricks.splice(index, 1);
+      registerBrickBreak(brick);
     }
 
     break;  // bounce off one brick per update, then stop looking
