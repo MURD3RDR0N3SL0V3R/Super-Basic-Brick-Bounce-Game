@@ -11,13 +11,45 @@ const ctx = canvas.getContext("2d");
 
 const WIDTH = canvas.width;   // 600
 const HEIGHT = canvas.height; // 450
-const PALETTE = {
-  background: "#0c1113",
-  grid: "rgba(220, 229, 231, 0.045)",
-  paddle: "#dce5e7",
-  ball: "#f6df68",
-  bricks: ["#56666c", "#84969b", "#b6c4c7", "#e6c847"]
+const THEME_PALETTES = {
+  classic: {
+    background: "#0c1113",
+    grid: "rgba(220, 229, 231, 0.045)",
+    paddle: "#dce5e7",
+    ball: "#f6df68",
+    bricks: ["#56666c", "#84969b", "#b6c4c7", "#e6c847"],
+    overlay: "rgba(9, 12, 14, 0.62)",
+    pageColor: "#090c0e"
+  },
+  uzi: {
+    background: "#2f2c43",
+    grid: "rgba(226, 226, 231, 0.08)",
+    paddle: "#e2e2e7",
+    ball: "#8c79b2",
+    bricks: ["#512850", "#5e2682", "#8c79b2", "#e2e2e7"],
+    overlay: "rgba(47, 44, 67, 0.7)",
+    pageColor: "#2f2c43"
+  },
+  "n-gray": {
+    background: "#0c1113",
+    grid: "rgba(220, 229, 231, 0.045)",
+    paddle: "#dce5e7",
+    ball: "#f6df68",
+    bricks: ["#56666c", "#84969b", "#b6c4c7", "#e6c847"],
+    overlay: "rgba(9, 12, 14, 0.62)",
+    pageColor: "#090c0e"
+  },
+  "n-alt": {
+    background: "#101c20",
+    grid: "rgba(205, 239, 231, 0.07)",
+    paddle: "#e0eceb",
+    ball: "#ffbd80",
+    bricks: ["#35505b", "#66898e", "#b1cfca", "#f0b37e"],
+    overlay: "rgba(8, 20, 24, 0.72)",
+    pageColor: "#101c20"
+  }
 };
+let PALETTE = THEME_PALETTES.classic;
 
 
 // ------------------------------------------------------------
@@ -74,6 +106,7 @@ const shopMenu = document.getElementById("shop-menu");
 const shopButton = document.getElementById("shop-button");
 const pauseButton = document.getElementById("pause-button");
 const musicButton = document.getElementById("music-button");
+const themeSelect = document.getElementById("theme-select");
 
 
 // ------------------------------------------------------------
@@ -129,6 +162,10 @@ musicButton.addEventListener("click", function () {
   updateInterface();
 });
 
+themeSelect.addEventListener("change", function () {
+  applyTheme(themeSelect.value);
+});
+
 document.querySelectorAll("[data-upgrade]").forEach(function (button) {
   button.addEventListener("click", function () {
     purchaseUpgrade(button.dataset.upgrade);
@@ -140,6 +177,13 @@ function setShopOpen(isOpen) {
   shopMenu.hidden = !shopOpen;
   shopButton.setAttribute("aria-expanded", String(shopOpen));
   updateInterface();
+}
+
+function applyTheme(themeName) {
+  const selectedTheme = THEME_PALETTES[themeName] ? themeName : "classic";
+  PALETTE = THEME_PALETTES[selectedTheme];
+  document.documentElement.dataset.theme = selectedTheme;
+  document.getElementById("theme-color-meta").setAttribute("content", PALETTE.pageColor);
 }
 
 function upgradeCost(type) {
@@ -284,7 +328,7 @@ function draw() {
   drawBrickSystem();  // bricks.js
 
   if (paused || shopOpen) {
-    ctx.fillStyle = "rgba(9, 12, 14, 0.62)";
+    ctx.fillStyle = PALETTE.overlay;
     ctx.fillRect(0, 0, WIDTH, HEIGHT);
     ctx.fillStyle = PALETTE.ball;
     ctx.font = "700 28px 'Barlow Condensed', sans-serif";

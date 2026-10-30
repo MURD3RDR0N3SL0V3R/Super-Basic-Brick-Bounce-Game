@@ -9,9 +9,9 @@ const BRICK_HEIGHT = 20;
 const BRICK_GAP = 6;     // empty space between bricks
 const BRICKS_TOP = 50;   // how far down the first row starts
 const BRICK_VARIANTS = {
-  standard: { hits: 1, color: "#87989c", reward: 2 },
-  reinforced: { hits: 2, color: "#e6c847", reward: 4 },
-  armored: { hits: 3, color: "#df8060", reward: 7 }
+  standard: { hits: 1, marker: "1", reward: 2 },
+  reinforced: { hits: 2, marker: "2", reward: 4 },
+  armored: { hits: 3, marker: "3", reward: 7 }
 };
 
 // Builds the list of bricks. Each brick is an object with an
@@ -39,7 +39,7 @@ function makeBricks() {
         row,
         hits: variant.hits,
         maxHits: variant.hits,
-        color: variant.color,
+        marker: variant.marker,
         reward: variant.reward,
         Shaded: { ...Shaded, shade: 80 + row * 40 }
       });
@@ -52,18 +52,16 @@ function makeBricks() {
 //Renders bricks using the data in their Shaded component.
 function drawBrickSystem() {
   for (const brick of bricks) {
-    ctx.fillStyle = brick.color;
+    ctx.fillStyle = PALETTE.bricks[brick.row];
     ctx.fillRect(brick.x, brick.y, brick.width, brick.height);
     ctx.strokeStyle = "rgba(9, 12, 14, 0.52)";
     ctx.lineWidth = 1;
     ctx.strokeRect(brick.x + .5, brick.y + .5, brick.width - 1, brick.height - 1);
 
-    if (brick.hits > 1) {
-      ctx.fillStyle = "rgba(9, 12, 14, 0.78)";
-      ctx.font = "10px Space Mono, monospace";
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-      ctx.fillText(brick.hits, brick.x + brick.width / 2, brick.y + brick.height / 2);
-    }
+    ctx.fillStyle = PALETTE.paddle;
+    ctx.font = "10px Space Mono, monospace";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(brick.marker, brick.x + brick.width / 2, brick.y + brick.height / 2);
   }
 }

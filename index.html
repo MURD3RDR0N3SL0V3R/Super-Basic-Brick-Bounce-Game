@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#090c0e">
+  <meta id="theme-color-meta" name="theme-color" content="#090c0e">
   <title>Block / Bounce</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -17,7 +17,20 @@
         <span class="mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
         <span>BLOCK<span class="wordmark-divider">/</span>BOUNCE</span>
       </a>
-      <div class="system-state"><span class="state-light"></span> SYSTEM ONLINE</div>
+      <div class="topbar-tools">
+        <label class="theme-setting" for="theme-select">
+          <span>THEME</span>
+          <select id="theme-select">
+            <option value="classic">CLASSIC</option>
+            <option value="uzi">UZI</option>
+            <optgroup label="N">
+              <option value="n-gray">GRAYSCALE + YELLOW</option>
+              <option value="n-alt">ALTERNATIVE TONE</option>
+            </optgroup>
+          </select>
+        </label>
+        <div class="system-state"><span class="state-light"></span> SYSTEM ONLINE</div>
+      </div>
     </header>
 
     <section class="intro" aria-labelledby="page-title">

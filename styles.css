@@ -9,19 +9,84 @@
   --line: #2a3438;
   --silver: #dce5e7;
   --muted: #849196;
+  --accent-rgb: 230, 200, 71;
+  --grid-rgb: 220, 229, 231;
+  --ambient: #1a2325;
+  --canvas-bg: #0c1113;
+  --panel-edge: #394448;
+  --field-edge: #465257;
+  --field-bg: #1a2225;
+  --note: #a4afb2;
+  --quiet: #718084;
+  --deep-quiet: #687479;
+  --disabled: #788487;
+  --bottom-shade: rgba(3, 5, 6, .7);
+  --panel-fill: rgba(15, 20, 22, .86);
+  --panel-glow: rgba(230, 200, 71, .035);
+  --shop-fill: rgba(8, 12, 14, .72);
   --yellow: #e6c847;
   --yellow-bright: #f6df68;
   --mono: "Space Mono", monospace;
   --display: "Barlow Condensed", "Arial Narrow", sans-serif;
 }
 
+:root[data-theme="uzi"] {
+  --void: #2f2c43;
+  --panel: #512850;
+  --line: #5e2682;
+  --silver: #e2e2e7;
+  --muted: #8c79b2;
+  --yellow: #8c79b2;
+  --yellow-bright: #e2e2e7;
+  --accent-rgb: 140, 121, 178;
+  --grid-rgb: 226, 226, 231;
+  --ambient: #512850;
+  --canvas-bg: #2f2c43;
+  --panel-edge: #5e2682;
+  --field-edge: #8c79b2;
+  --field-bg: #512850;
+  --note: #e2e2e7;
+  --quiet: #8c79b2;
+  --deep-quiet: #8c79b2;
+  --disabled: #8c79b2;
+  --bottom-shade: rgba(47, 44, 67, .72);
+  --panel-fill: rgba(47, 44, 67, .94);
+  --panel-glow: rgba(140, 121, 178, .15);
+  --shop-fill: rgba(47, 44, 67, .94);
+}
+
+:root[data-theme="n-alt"] {
+  --void: #101c20;
+  --panel: #17272d;
+  --line: #3b5960;
+  --silver: #e0eceb;
+  --muted: #9db1ad;
+  --yellow: #58d1c9;
+  --yellow-bright: #a0f4e3;
+  --accent-rgb: 88, 209, 201;
+  --grid-rgb: 205, 239, 231;
+  --ambient: #1d3439;
+  --canvas-bg: #101c20;
+  --panel-edge: #42636a;
+  --field-edge: #54747a;
+  --field-bg: #20353b;
+  --note: #bfd0cb;
+  --quiet: #89a09c;
+  --deep-quiet: #76908b;
+  --disabled: #91a8a2;
+  --bottom-shade: rgba(8, 20, 24, .72);
+  --panel-fill: rgba(19, 34, 39, .92);
+  --panel-glow: rgba(88, 209, 201, .09);
+  --shop-fill: rgba(12, 26, 30, .88);
+}
+
 body {
   margin: 0;
   min-height: 100vh;
   background:
-    linear-gradient(rgba(220, 229, 231, .025) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(220, 229, 231, .025) 1px, transparent 1px),
-    radial-gradient(ellipse at 50% 34%, #1a2325 0%, var(--void) 66%);
+    linear-gradient(rgba(var(--grid-rgb), .025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(var(--grid-rgb), .025) 1px, transparent 1px),
+    radial-gradient(ellipse at 50% 34%, var(--ambient) 0%, var(--void) 66%);
   background-size: 42px 42px, 42px 42px, auto;
   color: var(--silver);
   font-family: var(--mono);
@@ -31,7 +96,7 @@ body::before {
   position: fixed;
   z-index: -1;
   inset: 0;
-  background: linear-gradient(180deg, transparent 55%, rgba(3, 5, 6, .7));
+  background: linear-gradient(180deg, transparent 55%, var(--bottom-shade));
   content: "";
   pointer-events: none;
 }
@@ -54,6 +119,10 @@ body::before {
 .key-group,
 .bottomline,
 .bottomline-right {
+  display: flex;
+  align-items: center;
+}
+
 .game-toolbar {
   display: flex;
   align-items: center;
@@ -93,9 +162,9 @@ body::before {
 .shop-close {
   min-height: 31px;
   padding: 0 9px;
-  border: 1px solid #465257;
+  border: 1px solid var(--field-edge);
   border-radius: 2px;
-  background: #1a2225;
+  background: var(--field-bg);
   color: var(--silver);
   cursor: pointer;
   font: 8px var(--mono);
@@ -131,7 +200,7 @@ body::before {
 .shop-menu {
   padding: 15px;
   border-top: 1px solid var(--line);
-  background: rgba(8, 12, 14, .72);
+  background: var(--shop-fill);
 }
 
 .shop-menu[hidden] {
@@ -176,9 +245,9 @@ body::before {
   gap: 12px;
   min-height: 58px;
   padding: 9px 11px;
-  border: 1px solid #344044;
+  border: 1px solid var(--line);
   border-radius: 2px;
-  background: #141b1e;
+  background: var(--panel);
   color: var(--silver);
   text-align: left;
   cursor: pointer;
@@ -186,11 +255,11 @@ body::before {
 
 .upgrade-button:hover:not(:disabled) {
   border-color: var(--yellow);
-  background: #1a2225;
+  background: var(--field-bg);
 }
 
 .upgrade-button:disabled {
-  color: #788487;
+  color: var(--disabled);
   cursor: not-allowed;
   opacity: .58;
 }
@@ -214,10 +283,6 @@ body::before {
   flex: 0 0 auto;
   color: var(--yellow-bright);
   font-size: 9px;
-}
-
-  display: flex;
-  align-items: center;
 }
 
 .topbar,
@@ -280,13 +345,43 @@ body::before {
   color: var(--muted);
 }
 
+.topbar-tools {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.theme-setting {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--muted);
+  font-size: 8px;
+  letter-spacing: .8px;
+}
+
+.theme-setting select {
+  min-height: 28px;
+  padding: 0 7px;
+  border: 1px solid var(--field-edge);
+  border-radius: 2px;
+  background: var(--field-bg);
+  color: var(--silver);
+  font: 8px var(--mono);
+}
+
+.theme-setting select:focus-visible {
+  outline: 2px solid var(--yellow);
+  outline-offset: 2px;
+}
+
 .state-light,
 .live-dot {
   width: 6px;
   height: 6px;
   border-radius: 50%;
   background: var(--yellow);
-  box-shadow: 0 0 10px rgba(230, 200, 71, .7);
+  box-shadow: 0 0 10px rgba(var(--accent-rgb), .7);
 }
 
 .intro {
@@ -323,16 +418,16 @@ h1 span {
 
 .intro-note {
   margin: 0 0 3px;
-  color: #a4afb2;
+  color: var(--note);
   font-size: 10px;
   line-height: 1.8;
   text-align: right;
 }
 
 .game-panel {
-  border: 1px solid #394448;
-  background: rgba(15, 20, 22, .86);
-  box-shadow: 0 24px 70px rgba(0, 0, 0, .38), 0 0 34px rgba(230, 200, 71, .035);
+  border: 1px solid var(--panel-edge);
+  background: var(--panel-fill);
+  box-shadow: 0 24px 70px rgba(0, 0, 0, .38), 0 0 34px var(--panel-glow);
 }
 
 .panel-bar {
@@ -374,8 +469,8 @@ canvas {
   display: block;
   width: 100%;
   height: auto;
-  border: 1px solid #303a3e;
-  background: #0c1113;
+  border: 1px solid var(--panel-edge);
+  background: var(--canvas-bg);
   box-shadow: 0 0 30px rgba(0, 0, 0, .45);
 }
 
@@ -428,7 +523,7 @@ canvas {
 }
 
 .control-instruction {
-  color: #a4afb2;
+  color: var(--note);
   font-size: 10px;
 }
 
@@ -441,23 +536,23 @@ kbd {
   min-width: 25px;
   height: 25px;
   place-items: center;
-  border: 1px solid #465257;
+  border: 1px solid var(--field-edge);
   border-bottom-width: 2px;
   border-radius: 2px;
-  background: #1a2225;
+  background: var(--field-bg);
   color: var(--silver);
   font: 10px var(--mono);
 }
 
 .key-or {
   padding: 0 4px;
-  color: #687479;
+  color: var(--deep-quiet);
   font-size: 8px;
 }
 
 .bottomline {
   min-height: 42px;
-  color: #718084;
+  color: var(--quiet);
   font-size: 8px;
 }
 
@@ -491,6 +586,12 @@ kbd {
 
   .system-state {
     font-size: 8px;
+  }
+
+  .topbar-tools {
+    align-items: flex-end;
+    flex-direction: column;
+    gap: 8px;
   }
 
   .intro {
