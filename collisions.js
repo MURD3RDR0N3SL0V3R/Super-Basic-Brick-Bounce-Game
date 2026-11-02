@@ -19,18 +19,18 @@ function boxesTouch(a, b) {
 
 // The ball bounces off the left, right, and top walls.
 // (The bottom is not a wall: falling off the bottom resets the ball.)
-function bounceOffWalls() {
-  if (ball.x < 0) {
-    ball.x = 0;
-    ball.vx = -ball.vx;
+function bounceOffWalls(currentBall = ball) {
+  if (currentBall.x < 0) {
+    currentBall.x = 0;
+    currentBall.vx = -currentBall.vx;
   }
-  if (ball.x + ball.width > WIDTH) {
-    ball.x = WIDTH - ball.width;
-    ball.vx = -ball.vx;
+  if (currentBall.x + currentBall.width > WIDTH) {
+    currentBall.x = WIDTH - currentBall.width;
+    currentBall.vx = -currentBall.vx;
   }
-  if (ball.y < 0) {
-    ball.y = 0;
-    ball.vy = -ball.vy;
+  if (currentBall.y < 0) {
+    currentBall.y = 0;
+    currentBall.vy = -currentBall.vy;
   }
 }
 
@@ -38,48 +38,52 @@ function bounceOffWalls() {
 // The ball bounces off the top of the paddle.
 // ball.vy > 0 means "the ball is moving down", so it only bounces
 // when it is falling onto the paddle.
-function bounceOffPaddle() {
-  if (boxesTouch(ball, paddle) && ball.vy > 0) {
-    ball.y = paddle.y - ball.height;  // sit on top of the paddle
-    ball.vy = -ball.vy;
+function bounceOffPaddle(currentBall = ball) {
+  if (boxesTouch(currentBall, paddle) && currentBall.vy > 0) {
+    currentBall.y = paddle.y - currentBall.height;
+    const contactOffset = (currentBall.x + currentBall.width / 2 - (paddle.x + paddle.width / 2)) / (paddle.width / 2);
+    const angle = Math.max(-1.05, Math.min(1.05, contactOffset * 0.62 + aimAngle * 0.55));
+    const speed = Math.hypot(currentBall.vx, currentBall.vy) || BALL_SPEED;
+    currentBall.vx = Math.sin(angle) * speed;
+    currentBall.vy = -Math.cos(angle) * speed;
   }
 }
 
 
 // Bounce off a brick and apply the purchased impact upgrade.
-function bounceOffBricks() {
+function bounceOffBricks(currentBall = ball) {
   for (let index = 0; index < bricks.length; index++) {
     const brick = bricks[index];
-    if (!boxesTouch(ball, brick)) {
+    if (!boxesTouch(currentBall, brick)) {
       continue;  // not touching this brick, check the next one
     }
 
     // How far has the ball pushed into the brick on each side?
-    const overlapX = Math.min(ball.x + ball.width, brick.x + brick.width) - Math.max(ball.x, brick.x);
-    const overlapY = Math.min(ball.y + ball.height, brick.y + brick.height) - Math.max(ball.y, brick.y);
+    const overlapX = Math.min(currentBall.x + currentBall.width, brick.x + brick.width) - Math.max(currentBall.x, brick.x);
+    const overlapY = Math.min(currentBall.y + currentBall.height, brick.y + brick.height) - Math.max(currentBall.y, brick.y);
 
     if (overlapX < overlapY) {
       // The ball hit the brick's left or right side.
-      ball.vx = -ball.vx;
-      if (ball.x < brick.x) {
-        ball.x = brick.x - ball.width;     // left of the brick
+      currentBall.vx = -currentBall.vx;
+      if (currentBall.x < brick.x) {
+        currentBall.x = brick.x - currentBall.width;
       } else {
-        ball.x = brick.x + brick.width;    // right of the brick
+        currentBall.x = brick.x + brick.width;
       }
     } else {
       // The ball hit the brick's top or bottom.
-      ball.vy = -ball.vy;
-      if (ball.y < brick.y) {
-        ball.y = brick.y - ball.height;    // above the brick
+      currentBall.vy = -currentBall.vy;
+      if (currentBall.y < brick.y) {
+        currentBall.y = brick.y - currentBall.height;
       } else {
-        ball.y = brick.y + brick.height;   // below the brick
+        currentBall.y = brick.y + brick.height;
       }
     }
 
-    brick.hits -= 1 + upgrades.power;
+    brick.hits -= 1 + upgrades.power + (activeEffects.power > 0 ? 1 : 0);
     if (brick.hits <= 0) {
       bricks.splice(index, 1);
-      registerBrickBreak(brick);
+      registerBrickBreak(brick, currentBall);
     }
 
     break;  // bounce off one brick per update, then stop looking

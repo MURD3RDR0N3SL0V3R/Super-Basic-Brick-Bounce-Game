@@ -101,12 +101,22 @@ let paused = false;
 let shopOpen = false;
 let musicEnabled = false;
 const upgrades = { paddle: 0, power: 0 };
+const MAX_LIVES = 5;
+const balls = [ball];
+const activeEffects = { shield: 0, power: 0, wide: 0, electric: 0, cold: 0, hot: 0, noise: 0, distortion: 0, glow: 0 };
+const enemies = [];
+const powerupDrops = [];
+const POWERUP_TYPES = ["wide", "shield", "power", "multi", "cold", "hot"];
+let lives = 3;
+let gameOver = false;
+let aimAngle = 0;
 
 const shopMenu = document.getElementById("shop-menu");
 const shopButton = document.getElementById("shop-button");
 const pauseButton = document.getElementById("pause-button");
 const musicButton = document.getElementById("music-button");
 const themeSelect = document.getElementById("theme-select");
+const fullscreenButton = document.getElementById("fullscreen-button");
 
 
 // ------------------------------------------------------------
@@ -154,6 +164,16 @@ pauseButton.addEventListener("click", function () {
 
 document.getElementById("restart-button").addEventListener("click", restartGame);
 
+fullscreenButton.addEventListener("click", toggleFullscreen);
+document.addEventListener("fullscreenchange", updateFullscreenButton);
+
+canvas.addEventListener("pointermove", function (event) {
+  const bounds = canvas.getBoundingClientRect();
+  const pointerX = (event.clientX - bounds.left) / bounds.width * WIDTH;
+  paddle.x = Math.max(0, Math.min(WIDTH - paddle.width, pointerX - paddle.width / 2));
+  aimAngle = Math.max(-0.65, Math.min(0.65, (pointerX / WIDTH - 0.5) * 1.3));
+});
+
 musicButton.addEventListener("click", function () {
   musicEnabled = !musicEnabled;
   if (!toggleLofiMusic(musicEnabled)) {
@@ -186,6 +206,25 @@ function applyTheme(themeName) {
   document.getElementById("theme-color-meta").setAttribute("content", PALETTE.pageColor);
 }
 
+async function toggleFullscreen() {
+  try {
+    if (document.fullscreenElement) {
+      await document.exitFullscreen();
+    } else if (document.documentElement.requestFullscreen) {
+      await document.documentElement.requestFullscreen();
+    }
+  } catch (error) {
+    fullscreenButton.title = "Fullscreen is unavailable in this browser";
+  }
+  updateFullscreenButton();
+}
+
+function updateFullscreenButton() {
+  const isFullscreen = Boolean(document.fullscreenElement);
+  fullscreenButton.textContent = isFullscreen ? "EXIT FULL" : "FULLSCREEN";
+  fullscreenButton.setAttribute("aria-pressed", String(isFullscreen));
+}
+
 function upgradeCost(type) {
   return type === "paddle" ? 10 + upgrades.paddle * 10 : 20 + upgrades.power * 15;
 }
@@ -206,14 +245,160 @@ function purchaseUpgrade(type) {
   updateInterface();
 }
 
-function registerBrickBreak(brick) {
+function registerBrickBreak(brick, sourceBall) {
   score += brick.maxHits * 100;
   credits += brick.reward;
+
+  switch (brick.kind) {
+    case "life":
+      lives = Math.min(MAX_LIVES, lives + 1);
+      break;
+    case "enemy":
+      spawnEnemy(brick);
+      break;
+    case "power":
+      powerupDrops.push({
+        x: brick.x + brick.width / 2 - 9,
+        y: brick.y,
+        width: 18,
+        height: 14,
+        type: POWERUP_TYPES[Math.floor(Math.random() * POWERUP_TYPES.length)]
+      });
+      break;
+    case "multi":
+      spawnExtraBalls(sourceBall);
+      break;
+    case "vein": {
+      const neighbors = bricks.filter(function (candidate) {
+        return Math.abs(candidate.x - brick.x) <= BRICK_WIDTH + BRICK_GAP &&
+          Math.abs(candidate.y - brick.y) <= BRICK_HEIGHT + BRICK_GAP;
+      });
+      for (const neighbor of neighbors) {
+        damageBrick(neighbor, 1, sourceBall);
+      }
+      break;
+    }
+    case "electric":
+    case "cold":
+    case "hot":
+    case "noise":
+    case "distortion":
+    case "glow":
+      activeEffects[brick.kind] = 8;
+      break;
+  }
+
   if (bricks.length === 0) {
     wave += 1;
     bricks = makeBricks();
   }
   updateInterface();
+}
+
+function damageBrick(brick, damage, sourceBall) {
+  const index = bricks.indexOf(brick);
+  if (index < 0) {
+    return;
+  }
+  brick.hits -= damage;
+  if (brick.hits <= 0) {
+    bricks.splice(index, 1);
+    registerBrickBreak(brick, sourceBall);
+  }
+}
+
+function spawnEnemy(brick) {
+  if (enemies.length < 5) {
+    enemies.push({
+      x: brick.x + brick.width / 2 - 9,
+      y: brick.y + brick.height,
+      width: 18,
+      height: 14,
+      speed: 1.25,
+      phase: Math.random() * Math.PI * 2
+    });
+  }
+}
+
+function spawnExtraBalls(sourceBall = balls[0]) {
+  if (!sourceBall) {
+    return;
+  }
+  for (const direction of [-1, 1]) {
+    if (balls.length >= 6) {
+      break;
+    }
+    const angle = direction * 0.48;
+    const cosine = Math.cos(angle);
+    const sine = Math.sin(angle);
+    balls.push({
+      ...sourceBall,
+      vx: sourceBall.vx * cosine - sourceBall.vy * sine,
+      vy: sourceBall.vx * sine + sourceBall.vy * cosine
+    });
+  }
+}
+
+function activatePowerup(type) {
+  if (type === "multi") {
+    spawnExtraBalls();
+  } else {
+    activeEffects[type] = type === "shield" ? 16 : 10;
+    if (type === "wide") {
+      updatePaddleWidth();
+    }
+  }
+  updateInterface();
+}
+
+function updatePaddleWidth() {
+  const baseWidth = 90 + upgrades.paddle * 12;
+  paddle.width = Math.min(WIDTH - 20, baseWidth + (activeEffects.wide > 0 ? 30 : 0));
+  paddle.x = Math.min(paddle.x, WIDTH - paddle.width);
+}
+
+function updatePowerupDrops() {
+  for (let index = powerupDrops.length - 1; index >= 0; index--) {
+    const drop = powerupDrops[index];
+    drop.y += 1.8;
+    if (boxesTouch(drop, paddle)) {
+      activatePowerup(drop.type);
+      powerupDrops.splice(index, 1);
+    } else if (drop.y > HEIGHT) {
+      powerupDrops.splice(index, 1);
+    }
+  }
+}
+
+function updateEnemies() {
+  for (let index = enemies.length - 1; index >= 0; index--) {
+    const enemy = enemies[index];
+    enemy.y += enemy.speed;
+    enemy.phase += 0.06;
+    enemy.x += Math.sin(enemy.phase) * 0.8;
+    if (boxesTouch(enemy, paddle)) {
+      enemies.splice(index, 1);
+      loseLife();
+      break;
+    }
+    if (enemy.y > HEIGHT) {
+      enemies.splice(index, 1);
+    }
+  }
+}
+
+function updateEffectTimers() {
+  let changed = false;
+  for (const [effect, remaining] of Object.entries(activeEffects)) {
+    if (remaining > 0) {
+      activeEffects[effect] = Math.max(0, remaining - 1 / 60);
+      changed = changed || activeEffects[effect] === 0;
+    }
+  }
+  if (changed) {
+    updatePaddleWidth();
+    updateInterface();
+  }
 }
 
 function restartGame() {
@@ -223,6 +408,14 @@ function restartGame() {
   wave = 1;
   upgrades.paddle = 0;
   upgrades.power = 0;
+  lives = 3;
+  gameOver = false;
+  for (const effect of Object.keys(activeEffects)) {
+    activeEffects[effect] = 0;
+  }
+  enemies.length = 0;
+  powerupDrops.length = 0;
+  balls.splice(0, balls.length, ball);
   paddle.width = 90;
   paddle.x = WIDTH / 2 - paddle.width / 2;
   paused = false;
@@ -235,6 +428,11 @@ function updateInterface() {
   document.getElementById("score-value").textContent = String(score).padStart(4, "0");
   document.getElementById("credits-value").textContent = String(credits).padStart(2, "0");
   document.getElementById("wave-value").textContent = String(wave).padStart(2, "0");
+  document.getElementById("lives-value").textContent = String(lives);
+  const activePowerups = Object.entries(activeEffects)
+    .filter(function ([, remaining]) { return remaining > 0; })
+    .map(function ([effect, remaining]) { return `${effect.toUpperCase()} ${Math.ceil(remaining)}s`; });
+  document.getElementById("powerup-value").textContent = activePowerups.join(" / ") || "NONE";
   document.getElementById("game-status").textContent = shopOpen ? "SHOP" : paused ? "PAUSED" : "ACTIVE";
   pauseButton.innerHTML = `${paused ? "RESUME" : "PAUSE"} <kbd>P</kbd>`;
   musicButton.textContent = musicEnabled ? "LOFI ON" : "LOFI OFF";
@@ -258,24 +456,51 @@ function updateInterface() {
 // ------------------------------------------------------------
 function update() {
   movePaddle();
-  moveBall();
-
-  bounceOffWalls();   // collisions.js
-  bounceOffPaddle();  // collisions.js
-  bounceOffBricks();  // collisions.js
-
-  // The ball fell off the bottom: back to the center.
-  if (ball.y > HEIGHT) {
-    resetBall();
+  for (let index = balls.length - 1; index >= 0; index--) {
+    const currentBall = balls[index];
+    moveBall(currentBall);
+    bounceOffWalls(currentBall);   // collisions.js
+    bounceOffPaddle(currentBall);  // collisions.js
+    bounceOffBricks(currentBall);  // collisions.js
+    if (currentBall.y > HEIGHT) {
+      balls.splice(index, 1);
+    }
   }
+
+  if (balls.length === 0) {
+    if (activeEffects.shield > 0) {
+      activeEffects.shield = 0;
+      balls.push(ball);
+      resetBall();
+    } else {
+      loseLife();
+    }
+  }
+  updatePowerupDrops();
+  updateEnemies();
+  updateEffectTimers();
+}
+
+function loseLife() {
+  lives -= 1;
+  enemies.length = 0;
+  if (lives <= 0) {
+    lives = 0;
+    gameOver = true;
+    updateInterface();
+    return;
+  }
+  balls.splice(0, balls.length, ball);
+  resetBall();
+  updateInterface();
 }
 
 function movePaddle() {
-  if (keys["arrowleft"] || keys["a"]) {
-    paddle.x = paddle.x - paddle.speed;
-  }
-  if (keys["arrowright"] || keys["d"]) {
-    paddle.x = paddle.x + paddle.speed;
+  const movingLeft = keys["arrowleft"] || keys["a"];
+  const movingRight = keys["arrowright"] || keys["d"];
+  if (movingLeft !== movingRight) {
+    const direction = movingLeft ? -1 : 1;
+    paddle.x += direction * (activeEffects.electric > 0 ? -paddle.speed : paddle.speed);
   }
 
   // Keep the paddle on the screen.
@@ -287,9 +512,10 @@ function movePaddle() {
   }
 }
 
-function moveBall() {
-  ball.x = ball.x + ball.vx;
-  ball.y = ball.y + ball.vy;
+function moveBall(currentBall) {
+  const speedFactor = (activeEffects.hot > 0 ? 1.25 : 1) * (activeEffects.cold > 0 ? 0.72 : 1);
+  currentBall.x += currentBall.vx * speedFactor;
+  currentBall.y += currentBall.vy * speedFactor;
 }
 
 
@@ -322,19 +548,30 @@ function draw() {
   ctx.shadowColor = PALETTE.ball;
   ctx.shadowBlur = 18;
   ctx.fillStyle = PALETTE.ball;
-  ctx.fillRect(ball.x, ball.y, ball.width, ball.height);
+  for (const currentBall of balls) {
+    ctx.fillRect(currentBall.x, currentBall.y, currentBall.width, currentBall.height);
+  }
   ctx.shadowBlur = 0;
+
+  const aimStartX = paddle.x + paddle.width / 2;
+  ctx.strokeStyle = PALETTE.ball;
+  ctx.globalAlpha = 0.45;
+  ctx.beginPath();
+  ctx.moveTo(aimStartX, paddle.y);
+  ctx.lineTo(aimStartX + Math.sin(aimAngle) * 48, paddle.y - Math.cos(aimAngle) * 48);
+  ctx.stroke();
+  ctx.globalAlpha = 1;
 
   drawBrickSystem();  // bricks.js
 
-  if (paused || shopOpen) {
+  if (paused || shopOpen || gameOver) {
     ctx.fillStyle = PALETTE.overlay;
     ctx.fillRect(0, 0, WIDTH, HEIGHT);
     ctx.fillStyle = PALETTE.ball;
     ctx.font = "700 28px 'Barlow Condensed', sans-serif";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    ctx.fillText(shopOpen ? "SUPPLY DEPOT" : "PAUSED", WIDTH / 2, HEIGHT / 2);
+    ctx.fillText(gameOver ? "GAME OVER" : shopOpen ? "SUPPLY DEPOT" : "PAUSED", WIDTH / 2, HEIGHT / 2);
   }
 }
 
@@ -359,7 +596,7 @@ function frame(now) {
   }
 
   while (leftover >= STEP) {
-    if (!paused && !shopOpen) {
+    if (!paused && !shopOpen && !gameOver) {
       update();
     }
     leftover = leftover - STEP;

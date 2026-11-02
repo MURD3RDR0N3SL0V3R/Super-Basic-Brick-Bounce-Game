@@ -115,7 +115,6 @@ body::before {
 .panel-bar,
 .panel-label,
 .panel-status,
-.control-bar,
 .key-group,
 .bottomline,
 .bottomline-right {
@@ -126,7 +125,7 @@ body::before {
 .game-toolbar {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
   gap: 14px;
   min-height: 54px;
   padding: 9px 15px;
@@ -156,6 +155,119 @@ body::before {
 
 .game-actions {
   gap: 6px;
+}
+
+.topbar {
+  position: relative;
+  z-index: 3;
+}
+
+.game-menu {
+  position: relative;
+}
+
+.menu-trigger {
+  display: flex;
+  min-height: 32px;
+  align-items: center;
+  gap: 9px;
+  padding: 0 11px;
+  border: 1px solid var(--field-edge);
+  border-radius: 2px;
+  background: var(--field-bg);
+  color: var(--silver);
+  cursor: pointer;
+  font: 8px var(--mono);
+  letter-spacing: .7px;
+  list-style: none;
+}
+
+.menu-trigger::-webkit-details-marker {
+  display: none;
+}
+
+.menu-trigger:hover,
+.game-menu[open] .menu-trigger {
+  border-color: var(--yellow);
+  color: var(--yellow-bright);
+}
+
+.menu-trigger:focus-visible {
+  outline: 2px solid var(--yellow);
+  outline-offset: 2px;
+}
+
+.menu-icon {
+  display: grid;
+  width: 13px;
+  gap: 3px;
+}
+
+.menu-icon i {
+  height: 1px;
+  background: currentColor;
+}
+
+.menu-icon i:nth-child(2) {
+  width: 9px;
+}
+
+.menu-popover {
+  position: absolute;
+  top: calc(100% + 9px);
+  right: 0;
+  z-index: 5;
+  display: grid;
+  width: min(320px, calc(100vw - 28px));
+  gap: 12px;
+  padding: 13px;
+  border: 1px solid var(--panel-edge);
+  background: var(--panel-fill);
+  box-shadow: 0 16px 38px rgba(0, 0, 0, .45);
+}
+
+.menu-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 9px;
+  border-bottom: 1px solid var(--line);
+  color: var(--silver);
+  font-size: 8px;
+  letter-spacing: .8px;
+}
+
+.menu-heading span + span {
+  color: var(--muted);
+  font-size: 7px;
+}
+
+.menu-popover .theme-setting {
+  justify-content: space-between;
+}
+
+.menu-popover .game-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.menu-popover .game-actions button:last-child {
+  grid-column: 1 / -1;
+}
+
+.menu-controls {
+  display: grid;
+  gap: 7px;
+  padding-top: 11px;
+  border-top: 1px solid var(--line);
+}
+
+.menu-controls .control-kicker {
+  font-size: 8px;
+}
+
+.menu-controls .key-group {
+  justify-content: flex-start;
 }
 
 .game-actions button,
@@ -589,9 +701,7 @@ kbd {
   }
 
   .topbar-tools {
-    align-items: flex-end;
-    flex-direction: column;
-    gap: 8px;
+    gap: 10px;
   }
 
   .intro {
@@ -612,23 +722,11 @@ kbd {
   }
 
   .game-toolbar {
-    align-items: stretch;
-    flex-direction: column;
-    gap: 10px;
     padding: 12px;
   }
 
   .game-stats {
     justify-content: space-between;
-  }
-
-  .game-actions {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .game-actions button {
-    width: 100%;
   }
 
   .shop-menu {
@@ -643,13 +741,6 @@ kbd {
   .corner-tr { top: 8px; right: 9px; }
   .corner-bl { bottom: 8px; left: 9px; }
   .corner-br { right: 9px; bottom: 8px; }
-
-  .control-bar {
-    align-items: start;
-    flex-direction: column;
-    gap: 12px;
-    padding: 13px 12px;
-  }
 
   .bottomline {
     align-items: start;
