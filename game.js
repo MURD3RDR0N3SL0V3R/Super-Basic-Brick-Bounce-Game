@@ -98,8 +98,8 @@ let score = 0;
 let credits = 0;
 let wave = 1;
 let paused = false;
-let shopOpen = false;
 let musicEnabled = false;
+let currentView = "play";
 const upgrades = { paddle: 0, power: 0 };
 const MAX_LIVES = 5;
 const balls = [ball];
@@ -111,12 +111,42 @@ let lives = 3;
 let gameOver = false;
 let aimAngle = 0;
 
-const shopMenu = document.getElementById("shop-menu");
-const shopButton = document.getElementById("shop-button");
 const pauseButton = document.getElementById("pause-button");
 const musicButton = document.getElementById("music-button");
-const themeSelect = document.getElementById("theme-select");
 const fullscreenButton = document.getElementById("fullscreen-button");
+const DEFAULT_KEYBINDS = {
+  left: ["arrowleft", "a"],
+  right: ["arrowright", "d"],
+  pause: ["p"],
+  restart: ["r"]
+};
+const keybinds = loadKeybinds();
+let keybindCapture = null;
+
+function loadKeybinds() {
+  try {
+    const saved = JSON.parse(window.localStorage.getItem("block-bounce-keybinds"));
+    return Object.fromEntries(Object.entries(DEFAULT_KEYBINDS).map(function ([action, defaults]) {
+      const savedKeys = saved && saved[action];
+      const validKeys = Array.isArray(savedKeys)
+        ? savedKeys.filter(function (key) { return typeof key === "string" && key.length > 0; })
+        : [];
+      return [action, validKeys.length ? validKeys : defaults.slice()];
+    }));
+  } catch (error) {
+    return Object.fromEntries(Object.entries(DEFAULT_KEYBINDS).map(function ([action, defaults]) {
+      return [action, defaults.slice()];
+    }));
+  }
+}
+
+function saveKeybinds() {
+  try {
+    window.localStorage.setItem("block-bounce-keybinds", JSON.stringify(keybinds));
+  } catch (error) {
+    document.getElementById("keybind-note").textContent = "Keybinds apply for this session only.";
+  }
+}
 
 
 // ------------------------------------------------------------
@@ -126,35 +156,44 @@ const fullscreenButton = document.getElementById("fullscreen-button");
 const keys = {};
 
 document.addEventListener("keydown", function (event) {
-  keys[event.key.toLowerCase()] = true;
-  // Stop the arrow keys from scrolling the page.
+  const key = event.key.toLowerCase();
+  if (keybindCapture) {
+    event.preventDefault();
+    if (key === "escape") {
+      keybindCapture = null;
+      updateKeybindInterface();
+      return;
+    }
+    if (["shift", "control", "alt", "meta"].includes(key)) {
+      return;
+    }
+    keybinds[keybindCapture] = [key];
+    keybindCapture = null;
+    saveKeybinds();
+    updateKeybindInterface();
+    return;
+  }
+
+  if (currentView !== "play") {
+    return;
+  }
+  keys[key] = true;
   if (event.key.startsWith("Arrow")) {
     event.preventDefault();
   }
-
   if (event.repeat) {
     return;
   }
-  if (event.key.toLowerCase() === "p") {
+  if (keybinds.pause.includes(key)) {
     paused = !paused;
     updateInterface();
-  } else if (event.key.toLowerCase() === "r") {
+  } else if (keybinds.restart.includes(key)) {
     restartGame();
-  } else if (event.key === "Escape" && shopOpen) {
-    setShopOpen(false);
   }
 });
 
 document.addEventListener("keyup", function (event) {
   keys[event.key.toLowerCase()] = false;
-});
-
-document.getElementById("shop-close").addEventListener("click", function () {
-  setShopOpen(false);
-});
-
-shopButton.addEventListener("click", function () {
-  setShopOpen(!shopOpen);
 });
 
 pauseButton.addEventListener("click", function () {
@@ -182,8 +221,36 @@ musicButton.addEventListener("click", function () {
   updateInterface();
 });
 
-themeSelect.addEventListener("change", function () {
-  applyTheme(themeSelect.value);
+document.querySelectorAll("[data-view-target]").forEach(function (button) {
+  button.addEventListener("click", function () {
+    showView(button.dataset.viewTarget);
+  });
+});
+
+document.querySelector("[data-home-link]").addEventListener("click", function (event) {
+  event.preventDefault();
+  showView("play");
+});
+
+document.querySelectorAll("[data-theme-choice]").forEach(function (button) {
+  button.addEventListener("click", function () {
+    applyTheme(button.dataset.themeChoice);
+  });
+});
+
+document.querySelectorAll("[data-bind]").forEach(function (button) {
+  button.addEventListener("click", function () {
+    keybindCapture = button.dataset.bind;
+    updateKeybindInterface();
+  });
+});
+
+document.getElementById("reset-keybinds").addEventListener("click", function () {
+  for (const [action, defaults] of Object.entries(DEFAULT_KEYBINDS)) {
+    keybinds[action] = defaults.slice();
+  }
+  saveKeybinds();
+  updateKeybindInterface();
 });
 
 document.querySelectorAll("[data-upgrade]").forEach(function (button) {
@@ -192,11 +259,46 @@ document.querySelectorAll("[data-upgrade]").forEach(function (button) {
   });
 });
 
-function setShopOpen(isOpen) {
-  shopOpen = isOpen;
-  shopMenu.hidden = !shopOpen;
-  shopButton.setAttribute("aria-expanded", String(shopOpen));
+function showView(viewName) {
+  const views = document.querySelectorAll("[data-view]");
+  if (!Array.from(views).some(function (view) { return view.dataset.view === viewName; })) {
+    return;
+  }
+  currentView = viewName;
+  views.forEach(function (view) {
+    view.hidden = view.dataset.view !== currentView;
+  });
+  document.querySelectorAll("[data-view-target]").forEach(function (button) {
+    if (button.dataset.viewTarget === currentView) {
+      button.setAttribute("aria-current", "page");
+    } else {
+      button.removeAttribute("aria-current");
+    }
+  });
+  for (const key of Object.keys(keys)) {
+    keys[key] = false;
+  }
+  keybindCapture = null;
+  updateKeybindInterface();
   updateInterface();
+}
+
+function updateKeybindInterface() {
+  document.querySelectorAll("[data-bind]").forEach(function (button) {
+    const action = button.dataset.bind;
+    const keysForAction = keybinds[action].map(formatKey);
+    button.textContent = keybindCapture === action ? "PRESS KEY" : keysForAction.join(" / ");
+    button.setAttribute("aria-pressed", String(keybindCapture === action));
+  });
+  const note = document.getElementById("keybind-note");
+  note.textContent = keybindCapture
+    ? `Press a key for ${keybindCapture.toUpperCase()}, or Escape to cancel.`
+    : "Select a binding, then press a key.";
+}
+
+function formatKey(key) {
+  const labels = { arrowleft: "←", arrowright: "→", arrowup: "↑", arrowdown: "↓", " ": "SPACE" };
+  return labels[key] || key.toUpperCase();
 }
 
 function applyTheme(themeName) {
@@ -204,6 +306,9 @@ function applyTheme(themeName) {
   PALETTE = THEME_PALETTES[selectedTheme];
   document.documentElement.dataset.theme = selectedTheme;
   document.getElementById("theme-color-meta").setAttribute("content", PALETTE.pageColor);
+  document.querySelectorAll("[data-theme-choice]").forEach(function (button) {
+    button.setAttribute("aria-pressed", String(button.dataset.themeChoice === selectedTheme));
+  });
 }
 
 async function toggleFullscreen() {
@@ -419,7 +524,7 @@ function restartGame() {
   paddle.width = 90;
   paddle.x = WIDTH / 2 - paddle.width / 2;
   paused = false;
-  setShopOpen(false);
+  showView("play");
   resetBall();
   updateInterface();
 }
@@ -429,12 +534,14 @@ function updateInterface() {
   document.getElementById("credits-value").textContent = String(credits).padStart(2, "0");
   document.getElementById("wave-value").textContent = String(wave).padStart(2, "0");
   document.getElementById("lives-value").textContent = String(lives);
+  document.getElementById("shop-credits-value").textContent = String(credits).padStart(2, "0");
   const activePowerups = Object.entries(activeEffects)
     .filter(function ([, remaining]) { return remaining > 0; })
     .map(function ([effect, remaining]) { return `${effect.toUpperCase()} ${Math.ceil(remaining)}s`; });
   document.getElementById("powerup-value").textContent = activePowerups.join(" / ") || "NONE";
-  document.getElementById("game-status").textContent = shopOpen ? "SHOP" : paused ? "PAUSED" : "ACTIVE";
-  pauseButton.innerHTML = `${paused ? "RESUME" : "PAUSE"} <kbd>P</kbd>`;
+  document.getElementById("game-status").textContent = paused ? "PAUSED" : "ACTIVE";
+  pauseButton.innerHTML = `${paused ? "RESUME" : "PAUSE"} <kbd>${formatKey(keybinds.pause[0])}</kbd>`;
+  document.getElementById("restart-button").innerHTML = `RESTART <kbd>${formatKey(keybinds.restart[0])}</kbd>`;
   musicButton.textContent = musicEnabled ? "LOFI ON" : "LOFI OFF";
   musicButton.setAttribute("aria-pressed", String(musicEnabled));
 
@@ -496,8 +603,8 @@ function loseLife() {
 }
 
 function movePaddle() {
-  const movingLeft = keys["arrowleft"] || keys["a"];
-  const movingRight = keys["arrowright"] || keys["d"];
+  const movingLeft = keybinds.left.some(function (key) { return keys[key]; });
+  const movingRight = keybinds.right.some(function (key) { return keys[key]; });
   if (movingLeft !== movingRight) {
     const direction = movingLeft ? -1 : 1;
     paddle.x += direction * (activeEffects.electric > 0 ? -paddle.speed : paddle.speed);
@@ -564,14 +671,14 @@ function draw() {
 
   drawBrickSystem();  // bricks.js
 
-  if (paused || shopOpen || gameOver) {
+  if (paused || gameOver) {
     ctx.fillStyle = PALETTE.overlay;
     ctx.fillRect(0, 0, WIDTH, HEIGHT);
     ctx.fillStyle = PALETTE.ball;
     ctx.font = "700 28px 'Barlow Condensed', sans-serif";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    ctx.fillText(gameOver ? "GAME OVER" : shopOpen ? "SUPPLY DEPOT" : "PAUSED", WIDTH / 2, HEIGHT / 2);
+    ctx.fillText(gameOver ? "GAME OVER" : "PAUSED", WIDTH / 2, HEIGHT / 2);
   }
 }
 
@@ -596,7 +703,7 @@ function frame(now) {
   }
 
   while (leftover >= STEP) {
-    if (!paused && !shopOpen && !gameOver) {
+    if (currentView === "play" && !paused && !gameOver) {
       update();
     }
     leftover = leftover - STEP;

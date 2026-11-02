@@ -13,47 +13,24 @@
 <body>
   <main class="shell">
     <header class="topbar">
-      <a class="wordmark" href="#" aria-label="Block Bounce home">
+      <a class="wordmark" href="#play" data-home-link aria-label="Block Bounce home">
         <span class="mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
         <span>BLOCK<span class="wordmark-divider">/</span>BOUNCE</span>
       </a>
-      <div class="topbar-tools">
-        <div class="system-state"><span class="state-light"></span> SYSTEM ONLINE</div>
-        <details class="game-menu" id="game-menu">
-          <summary class="menu-trigger"><span class="menu-icon" aria-hidden="true"><i></i><i></i><i></i></span>MENU</summary>
-          <div class="menu-popover">
-            <div class="menu-heading"><span>GAME MENU</span><span>SETTINGS / CONTROLS</span></div>
-            <label class="theme-setting" for="theme-select">
-              <span>THEME</span>
-              <select id="theme-select">
-                <option value="classic">CLASSIC</option>
-                <option value="uzi">UZI</option>
-                <optgroup label="N">
-                  <option value="n-gray">GRAYSCALE + YELLOW</option>
-                  <option value="n-alt">ALTERNATIVE TONE</option>
-                </optgroup>
-              </select>
-            </label>
-            <div class="game-actions">
-              <button type="button" id="shop-button" aria-expanded="false" aria-controls="shop-menu">SHOP</button>
-              <button type="button" id="pause-button">PAUSE <kbd>P</kbd></button>
-              <button type="button" id="restart-button">RESTART <kbd>R</kbd></button>
-              <button type="button" id="music-button" aria-pressed="false">LOFI OFF</button>
-              <button type="button" id="fullscreen-button" aria-label="Enter fullscreen" aria-pressed="false">FULLSCREEN</button>
-            </div>
-            <div class="menu-controls">
-              <span class="control-kicker">PILOT CONTROLS</span>
-              <span class="control-instruction">Aim with pointer. Steer with arrows or A / D.</span>
-              <span class="key-group" aria-label="Move with the left and right arrow keys, or A and D">
-                <kbd>←</kbd><kbd>→</kbd><span class="key-or">OR</span><kbd>A</kbd><kbd>D</kbd>
-              </span>
-            </div>
-          </div>
-        </details>
-      </div>
+      <div class="system-state"><span class="state-light"></span> SYSTEM ONLINE</div>
     </header>
 
-    <section class="intro" aria-labelledby="page-title">
+    <nav class="view-nav" aria-label="Game sections">
+      <button type="button" data-view-target="play" aria-current="page"><span>01</span> PLAY</button>
+      <button type="button" data-view-target="themes"><span>02</span> THEMES</button>
+      <button type="button" data-view-target="settings"><span>03</span> SETTINGS</button>
+      <button type="button" data-view-target="keybinds"><span>04</span> KEYBINDS</button>
+      <button type="button" data-view-target="credits"><span>05</span> CREDITS</button>
+      <button type="button" data-view-target="shop"><span>06</span> SHOP</button>
+    </nav>
+
+    <section class="app-view" id="view-play" data-view="play" aria-labelledby="page-title">
+      <section class="intro">
       <div>
         <p class="eyebrow">ARCADE SIMULATION <span>///</span> 001</p>
         <h1 id="page-title">BREAK THE <span>LOOP.</span></h1>
@@ -79,24 +56,92 @@
           <span>CREDITS <strong id="credits-value">00</strong></span>
           <span>WAVE <strong id="wave-value">01</strong></span>
           <span>LIVES <strong id="lives-value">3</strong></span>
+          <span>FX <strong id="powerup-value">NONE</strong></span>
+        </div>
+        <div class="play-actions">
+          <button type="button" id="pause-button">PAUSE <kbd>P</kbd></button>
+          <button type="button" id="restart-button">RESTART <kbd>R</kbd></button>
         </div>
       </div>
-      <section id="shop-menu" class="shop-menu" aria-label="Upgrade shop" hidden>
-        <div class="shop-heading">
-          <div><p class="eyebrow">FIELD UPGRADES</p><h2>SUPPLY DEPOT</h2></div>
-          <button type="button" id="shop-close" class="shop-close" aria-label="Close shop">CLOSE</button>
-        </div>
-        <div class="shop-items">
-          <button type="button" class="upgrade-button" data-upgrade="paddle">
-            <span class="upgrade-copy"><strong>WIDE PADDLE</strong><small>Increase paddle width</small></span>
-            <span class="upgrade-price" id="paddle-price">10 CR</span>
-          </button>
-          <button type="button" class="upgrade-button" data-upgrade="power">
-            <span class="upgrade-copy"><strong>IMPACT CORE</strong><small>Deal more damage per hit</small></span>
-            <span class="upgrade-price" id="power-price">20 CR</span>
-          </button>
-        </div>
-      </section>
+      <div class="play-hint"><span>AIM WITH POINTER</span><span>STEER WITH ARROWS OR A / D</span></div>
+    </section>
+    </section>
+
+    <section class="app-view" id="view-themes" data-view="themes" aria-labelledby="themes-title" hidden>
+      <div class="view-heading">
+        <div><p class="eyebrow">DISPLAY PROFILE <span>///</span> 02</p><h1 id="themes-title">CHOOSE A <span>THEME.</span></h1></div>
+        <p class="intro-note">Pick a palette for the arena.</p>
+      </div>
+      <div class="theme-grid">
+        <button type="button" class="theme-card" data-theme-choice="classic" aria-pressed="true">
+          <span class="theme-preview theme-preview-classic"><i></i><i></i><i></i><i></i></span>
+          <span class="theme-card-copy"><strong>CLASSIC</strong><small>Signal yellow / graphite</small></span><span class="theme-check" aria-hidden="true">01</span>
+        </button>
+        <button type="button" class="theme-card" data-theme-choice="uzi" aria-pressed="false">
+          <span class="theme-preview theme-preview-uzi"><i></i><i></i><i></i><i></i></span>
+          <span class="theme-card-copy"><strong>UZI</strong><small>Violet / soft silver</small></span><span class="theme-check" aria-hidden="true">02</span>
+        </button>
+        <button type="button" class="theme-card" data-theme-choice="n-gray" aria-pressed="false">
+          <span class="theme-preview theme-preview-gray"><i></i><i></i><i></i><i></i></span>
+          <span class="theme-card-copy"><strong>GRAYSCALE + YELLOW</strong><small>Monochrome / signal yellow</small></span><span class="theme-check" aria-hidden="true">03</span>
+        </button>
+        <button type="button" class="theme-card" data-theme-choice="n-alt" aria-pressed="false">
+          <span class="theme-preview theme-preview-alt"><i></i><i></i><i></i><i></i></span>
+          <span class="theme-card-copy"><strong>ALTERNATIVE TONE</strong><small>Deep teal / warm signal</small></span><span class="theme-check" aria-hidden="true">04</span>
+        </button>
+      </div>
+    </section>
+
+    <section class="app-view" id="view-settings" data-view="settings" aria-labelledby="settings-title" hidden>
+      <div class="view-heading">
+        <div><p class="eyebrow">SYSTEM PREFERENCES <span>///</span> 03</p><h1 id="settings-title">SETTINGS.</h1></div>
+      </div>
+      <div class="settings-list">
+        <div class="settings-row"><div><strong>BACKGROUND MUSIC</strong><small>Procedural lo-fi loop</small></div><button type="button" class="setting-button" id="music-button" aria-pressed="false">LOFI OFF</button></div>
+        <div class="settings-row"><div><strong>FULLSCREEN</strong><small>Toggle the game display</small></div><button type="button" class="setting-button" id="fullscreen-button" aria-label="Enter fullscreen" aria-pressed="false">ENTER FULLSCREEN</button></div>
+      </div>
+    </section>
+
+    <section class="app-view" id="view-keybinds" data-view="keybinds" aria-labelledby="keybinds-title" hidden>
+      <div class="view-heading">
+        <div><p class="eyebrow">INPUT CONFIGURATION <span>///</span> 04</p><h1 id="keybinds-title">KEYBINDS.</h1></div>
+        <button type="button" class="setting-button" id="reset-keybinds">RESET DEFAULTS</button>
+      </div>
+      <div class="keybind-list">
+        <div class="keybind-row"><span>MOVE LEFT</span><button type="button" data-bind="left" aria-label="Change move left key">← / A</button></div>
+        <div class="keybind-row"><span>MOVE RIGHT</span><button type="button" data-bind="right" aria-label="Change move right key">→ / D</button></div>
+        <div class="keybind-row"><span>PAUSE / RESUME</span><button type="button" data-bind="pause" aria-label="Change pause key">P</button></div>
+        <div class="keybind-row"><span>RESTART RUN</span><button type="button" data-bind="restart" aria-label="Change restart key">R</button></div>
+      </div>
+      <p class="keybind-note" id="keybind-note" aria-live="polite">Select a binding, then press a key.</p>
+    </section>
+
+    <section class="app-view" id="view-credits" data-view="credits" aria-labelledby="credits-title" hidden>
+      <div class="view-heading">
+        <div><p class="eyebrow">ABOUT THIS BUILD <span>///</span> 05</p><h1 id="credits-title">CREDITS.</h1></div>
+      </div>
+      <div class="credits-layout">
+        <div class="credits-mark" aria-hidden="true"><span class="mark"><i></i><i></i><i></i><i></i></span></div>
+        <div class="credits-details"><p class="credits-name">BLOCK / BOUNCE</p><p>Browser arcade game</p><dl><div><dt>RENDERING</dt><dd>HTML Canvas</dd></div><div><dt>AUDIO</dt><dd>Web Audio API</dd></div><div><dt>BUILD</dt><dd>2026 / SECTOR 01</dd></div></dl></div>
+      </div>
+    </section>
+
+    <section class="app-view" id="view-shop" data-view="shop" aria-labelledby="shop-title" hidden>
+      <div class="view-heading">
+        <div><p class="eyebrow">FIELD UPGRADES <span>///</span> 06</p><h1 id="shop-title">SUPPLY <span>DEPOT.</span></h1></div>
+        <div class="shop-balance">CREDITS <strong id="shop-credits-value">00</strong></div>
+      </div>
+      <div class="shop-items">
+        <button type="button" class="upgrade-button" data-upgrade="paddle">
+          <span class="upgrade-copy"><strong>WIDE PADDLE</strong><small>Increase paddle width</small></span>
+          <span class="upgrade-price" id="paddle-price">10 CR</span>
+        </button>
+        <button type="button" class="upgrade-button" data-upgrade="power">
+          <span class="upgrade-copy"><strong>IMPACT CORE</strong><small>Deal more damage per hit</small></span>
+          <span class="upgrade-price" id="power-price">20 CR</span>
+        </button>
+      </div>
+      <button type="button" class="back-to-game" data-view-target="play">← RETURN TO GAME</button>
     </section>
 
     <footer class="bottomline">
